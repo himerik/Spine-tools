@@ -3,220 +3,651 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frames to Spine Animation Converter</title>
+    <title>Spine JSON Merger</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --accent-color: #4b6eaf;
-            --text-color: #e0e0e0;
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-tertiary: #2d2d2d;
+            --text-primary: #e0e0e0;
             --text-secondary: #aaaaaa;
-            --border-color: #333333;
+            --accent-primary: #bb86fc;
+            --accent-secondary: #03dac6;
+            --error-color: #cf6679;
+            --success-color: #4caf50;
+            --button-hover: #9a67ea;
+            --download-button: #018786;
+            --download-button-hover: #017374;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            max-width: 800px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: var(--bg-color);
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 20px;
+            padding: 24px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
         }
         
         h1 {
-            margin: 20px 0 10px 0;
-            font-size: 2.5em;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-        }
-        
-        h2 {
-            color: var(--accent-color);
-            margin-top: 0;
-            font-weight: 500;
-        }
-        
-        h3 {
-            color: var(--text-color);
-            font-weight: 500;
-        }
-        
-        .section {
-            background-color: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: var(--accent-primary);
+            text-align: center;
             margin-bottom: 30px;
-            border: 1px solid var(--border-color);
+            font-size: 2.2rem;
         }
         
-        .illustration {
-            text-align: center;
-            background-color: transparent;
-            box-shadow: none;
+        .file-area {
+            display: flex;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .file-container {
+            flex: 1;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .file-container:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .file-container h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--accent-secondary);
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+        
+        input[type="file"] {
+            margin-bottom: 12px;
+            width: 100%;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--bg-tertiary);
+        }
+        
+        input[type="file"]::-webkit-file-upload-button {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
             border: none;
-            padding: 0;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 12px;
+            transition: all 0.2s ease;
         }
         
-        .illustration img, .illustration svg {
-            max-width: 100%;
-            height: auto;
-            margin: 0 auto;
-            display: block;
+        input[type="file"]::-webkit-file-upload-button:hover {
+            background: var(--button-hover);
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin: 12px 0;
+            padding: 12px;
+            border: 1px solid var(--bg-tertiary);
             border-radius: 8px;
+            resize: vertical;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
         }
         
-        .download {
-            text-align: center;
+        textarea:focus {
+            outline: 2px solid var(--accent-primary);
+            border-color: transparent;
+        }
+        
+        button {
+            background-color: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            display: block;
+            margin: 28px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            background-color: var(--button-hover);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .result-container {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            margin-top: 32px;
+            transition: all 0.3s ease;
+        }
+        
+        .result-container h2 {
+            margin-top: 0;
+            color: var(--accent-secondary);
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+        
+        .status {
+            color: var(--text-secondary);
+            margin: 10px 0;
+            font-style: italic;
+            font-size: 14px;
+        }
+        
+        .info-block {
+            background-color: rgba(187, 134, 252, 0.1);
+            border-left: 4px solid var(--accent-primary);
+            padding: 16px 20px;
+            margin-bottom: 28px;
+            border-radius: 0 8px 8px 0;
+            line-height: 1.6;
         }
         
         .download-btn {
-            display: inline-block;
-            background-color: var(--accent-color);
-            color: white;
-            padding: 14px 36px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
-            border: none;
-            margin-top: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            background-color: var(--download-button);
+            margin-top: 16px;
         }
         
         .download-btn:hover {
-            background-color: #5a7dc5;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+            background-color: var(--download-button-hover);
         }
         
-        .note {
-            color: var(--text-secondary);
-            font-size: 0.9em;
-            margin-top: 15px;
+        .hidden {
+            display: none;
         }
         
-        footer {
-            margin-top: 40px;
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.9em;
-            padding: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .feature-list {
-            margin-left: 10px;
-            padding-left: 20px;
-        }
-        
-        .feature-list li {
-            margin-bottom: 8px;
-            position: relative;
-        }
-        
-        .feature-list li::before {
-            content: "•";
-            color: var(--accent-color);
-            font-weight: bold;
-            display: inline-block;
-            width: 1em;
-            margin-left: -1em;
-        }
-        
-        p {
-            color: var(--text-color);
-            margin-bottom: 16px;
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .file-area {
+                flex-direction: column;
+            }
+            
+            body {
+                padding: 16px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="illustration">
-        <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
-            <!-- Dark Background -->
-            <rect width="400" height="200" fill="#2B2B2B" rx="10" ry="10"/>
-            
-            <!-- Left Panel - Input Section -->
-            <rect x="20" y="20" width="120" height="160" fill="#3C3F41" rx="5" ry="5"/>
-            
-            <!-- Video/Image Input Icon -->
-            <rect x="35" y="35" width="90" height="60" fill="#1E1E1E" rx="3" ry="3"/>
-            <path d="M65 50 L95 65 L65 80 Z" fill="#4B6EAF"/>
-            <text x="80" y="110" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="10">Input Source</text>
-            
-            <!-- Arrow from input to processing -->
-            <path d="M150 80 L180 80" stroke="#E0E0E0" stroke-width="2" fill="none"/>
-            <polygon points="180,80 175,76 175,84" fill="#E0E0E0"/>
-            
-            <!-- Middle Panel - Processing Section -->
-            <rect x="190" y="40" width="60" height="120" fill="#3C3F41" rx="5" ry="5"/>
-            <text x="220" y="30" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="10">Processing</text>
-            
-            <!-- Frame Indicators -->
-            <rect x="200" y="55" width="40" height="25" fill="#1E1E1E" rx="2" ry="2"/>
-            <rect x="200" y="85" width="40" height="25" fill="#1E1E1E" rx="2" ry="2"/>
-            <rect x="200" y="115" width="40" height="25" fill="#1E1E1E" rx="2" ry="2"/>
-            
-            <text x="220" y="70" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="8">Frame 1</text>
-            <text x="220" y="100" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="8">Frame 2</text>
-            <text x="220" y="130" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="8">Frame 3</text>
-            
-            <!-- Arrow from processing to output -->
-            <path d="M260 80 L290 80" stroke="#E0E0E0" stroke-width="2" fill="none"/>
-            <polygon points="290,80 285,76 285,84" fill="#E0E0E0"/>
-            
-            <!-- Right Panel - Output Section -->
-            <rect x="300" y="20" width="80" height="160" fill="#3C3F41" rx="5" ry="5"/>
-            <text x="340" y="40" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="10">Spine JSON</text>
-            
-            <!-- JSON Icon -->
-            <rect x="310" y="50" width="60" height="100" fill="#1E1E1E" rx="3" ry="3"/>
-            <text x="340" y="70" text-anchor="middle" fill="#4B6EAF" font-family="monospace" font-size="8">{</text>
-            <text x="340" y="85" text-anchor="middle" fill="#E0E0E0" font-family="monospace" font-size="6">"animation": {</text>
-            <text x="340" y="95" text-anchor="middle" fill="#E0E0E0" font-family="monospace" font-size="6">"slots": {...}</text>
-            <text x="340" y="105" text-anchor="middle" fill="#E0E0E0" font-family="monospace" font-size="6">"bones": [...],</text>
-            <text x="340" y="115" text-anchor="middle" fill="#E0E0E0" font-family="monospace" font-size="6">"frames": [...]</text>
-            <text x="340" y="125" text-anchor="middle" fill="#E0E0E0" font-family="monospace" font-size="6">}</text>
-            <text x="340" y="140" text-anchor="middle" fill="#4B6EAF" font-family="monospace" font-size="8">}</text>
-            
-            <!-- Removed the App Title that was here -->
-        </svg>
+    <h1>Spine JSON Merger</h1>
+    
+    <div class="info-block">
+        <p>This tool merges two Spine 3.8.75 JSON files, transferring bones, animations, slots, and constraints while preserving hierarchy. All elements from the imported file will be attached to the root bone of the main file. Element names are automatically indexed to prevent conflicts.</p>
     </div>
     
-    <header>
-        <h1>Frames to Spine Animation Converter</h1>
-        <p style="font-size: 1.2em; opacity: 0.8;">Convert video and image sequences into Spine animations</p>
-    </header>
-    
-    <div class="section">
-        <h2>Features</h2>
-        <ul class="feature-list">
-            <li>Import frames from video files</li>
-            <li>Import frames from image sequences</li>
-            <li>Preview and select specific frame ranges</li>
-            <li>Customize animation parameters</li>
-            <li>Adjust slot name and dimensions</li>
-            <li>Generate Spine-compatible JSON files</li>
-            <li>Option to save or discard source frames</li>
-        </ul>
+    <div class="file-area">
+        <div class="file-container">
+            <h2>Main File</h2>
+            <input type="file" id="mainFile" accept=".json">
+            <div class="status" id="mainStatus">File not loaded</div>
+            <textarea id="mainContent" placeholder="Or paste JSON content here"></textarea>
+        </div>
+        
+        <div class="file-container">
+            <h2>Import File</h2>
+            <input type="file" id="importFile" accept=".json">
+            <div class="status" id="importStatus">File not loaded</div>
+            <textarea id="importContent" placeholder="Or paste JSON content here"></textarea>
+        </div>
     </div>
     
-    <div class="section download">
-        <h2>Download</h2>
-        <p>Get the latest version of the application:</p>
-        <a href="FramesToSpineConverter.zip" class="download-btn">Download Now</a>
-        <p class="note">Version 1.0.0 | Windows | 5.2 MB</p>
+    <button id="mergeButton">Merge Files</button>
+    
+    <div class="result-container hidden" id="resultContainer">
+        <h2>Merge Result</h2>
+        <div class="status" id="resultStatus"></div>
+        <textarea id="resultContent" readonly></textarea>
+        <button class="download-btn" id="downloadButton">Download Result</button>
     </div>
     
-    <footer>
-        <p>&copy; 2025 Frames to Spine Animation Converter. All rights reserved.</p>
-    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainFileInput = document.getElementById('mainFile');
+            const importFileInput = document.getElementById('importFile');
+            const mainContentArea = document.getElementById('mainContent');
+            const importContentArea = document.getElementById('importContent');
+            const mainStatus = document.getElementById('mainStatus');
+            const importStatus = document.getElementById('importStatus');
+            const mergeButton = document.getElementById('mergeButton');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultStatus = document.getElementById('resultStatus');
+            const resultContent = document.getElementById('resultContent');
+            const downloadButton = document.getElementById('downloadButton');
+            
+            let mainFileData = null;
+            let importFileData = null;
+            
+            // Main file upload handling
+            mainFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const content = event.target.result;
+                        mainFileData = JSON.parse(content);
+                        mainContentArea.value = JSON.stringify(mainFileData, null, 2).slice(0, 1000) + '...';
+                        mainStatus.textContent = `File loaded: ${file.name} (${formatFileSize(file.size)})`;
+                        validateSpineFile(mainFileData, mainStatus);
+                    } catch (error) {
+                        mainStatus.textContent = 'Error: Invalid JSON file';
+                        console.error(error);
+                    }
+                };
+                reader.readAsText(file);
+            });
+            
+            // Allow direct input in text areas
+            mainContentArea.addEventListener('input', function() {
+                try {
+                    if (mainContentArea.value.trim()) {
+                        mainFileData = JSON.parse(mainContentArea.value);
+                        mainStatus.textContent = 'JSON loaded from text field';
+                        validateSpineFile(mainFileData, mainStatus);
+                    }
+                } catch (error) {
+                    mainStatus.textContent = 'Error: Invalid JSON';
+                }
+            });
+            
+            // Import file upload handling
+            importFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const content = event.target.result;
+                        importFileData = JSON.parse(content);
+                        importContentArea.value = JSON.stringify(importFileData, null, 2).slice(0, 1000) + '...';
+                        importStatus.textContent = `File loaded: ${file.name} (${formatFileSize(file.size)})`;
+                        validateSpineFile(importFileData, importStatus);
+                    } catch (error) {
+                        importStatus.textContent = 'Error: Invalid JSON file';
+                        console.error(error);
+                    }
+                };
+                reader.readAsText(file);
+            });
+            
+            // Allow direct input in text areas
+            importContentArea.addEventListener('input', function() {
+                try {
+                    if (importContentArea.value.trim()) {
+                        importFileData = JSON.parse(importContentArea.value);
+                        importStatus.textContent = 'JSON loaded from text field';
+                        validateSpineFile(importFileData, importStatus);
+                    }
+                } catch (error) {
+                    importStatus.textContent = 'Error: Invalid JSON';
+                }
+            });
+            
+            // Check if file looks like a Spine file
+            function validateSpineFile(data, statusElement) {
+                const requiredProps = ['skeleton', 'bones'];
+                const missingProps = requiredProps.filter(prop => !data[prop]);
+                
+                if (missingProps.length > 0) {
+                    statusElement.textContent += ' - Warning: File may not be a valid Spine file (missing properties: ' + missingProps.join(', ') + ')';
+                }
+            }
+            
+            // Format file size
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' bytes';
+                else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                else return (bytes / 1048576).toFixed(1) + ' MB';
+            }
+            
+            // Merge button click handling
+            mergeButton.addEventListener('click', function() {
+                if (!mainFileData || !importFileData) {
+                    alert('Please load both files before merging');
+                    return;
+                }
+                
+                try {
+                    const mergedData = mergeSpineFiles(mainFileData, importFileData);
+                    resultContent.value = JSON.stringify(mergedData, null, 2);
+                    resultStatus.textContent = 'Merge completed successfully';
+                    resultContainer.classList.remove('hidden');
+                } catch (error) {
+                    resultStatus.textContent = 'Error during merge: ' + error.message;
+                    resultContainer.classList.remove('hidden');
+                    console.error(error);
+                }
+            });
+            
+            // Download result handling
+            downloadButton.addEventListener('click', function() {
+                if (!resultContent.value) return;
+                
+                const blob = new Blob([resultContent.value], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'merged_spine.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+            
+            // Main function for merging Spine files, corrected for proper root bone handling
+            function mergeSpineFiles(mainFile, importFile) {
+                // Create a deep copy of the main file to avoid modifying the original
+                const result = JSON.parse(JSON.stringify(mainFile));
+                
+                // Generate a unique suffix for imported elements
+                const importSuffix = '_imp' + Date.now().toString().slice(-4);
+                
+                // Get original bone names to create a mapping
+                const boneNameMap = {};
+                
+                // Find the root bone name of the main file (usually "root")
+                let mainRootBoneName = null;
+                if (result.bones && Array.isArray(result.bones)) {
+                    const rootBone = result.bones.find(bone => !bone.parent);
+                    if (rootBone) {
+                        mainRootBoneName = rootBone.name;
+                    }
+                }
+                
+                // 1. Bones - add with hierarchy preservation
+                if (importFile.bones && Array.isArray(importFile.bones)) {
+                    // First create a map of original bone names for renaming
+                    importFile.bones.forEach(bone => {
+                        const originalName = bone.name;
+                        const newName = bone.name === "root" ? mainRootBoneName : bone.name + importSuffix;
+                        boneNameMap[originalName] = newName;
+                    });
+                    
+                    // Get the list of bones to import, excluding the root bone
+                    const importBones = [];
+                    
+                    importFile.bones.forEach(bone => {
+                        // Skip the root bone of the imported file
+                        if (!bone.parent && bone.name === "root") {
+                            return;
+                        }
+                        
+                        const newBone = {...bone};
+                        newBone.name = boneNameMap[bone.name];
+                        
+                        // Update the parent bone if it exists
+                        if (bone.parent) {
+                            // If the parent is the root bone of the imported file,
+                            // replace it with the root bone of the main file
+                            if (bone.parent === "root") {
+                                newBone.parent = mainRootBoneName;
+                            } else {
+                                newBone.parent = boneNameMap[bone.parent];
+                            }
+                        } else {
+                            // Bone has no parent but is not the "root" bone,
+                            // attach it to the root bone of the main file
+                            newBone.parent = mainRootBoneName;
+                        }
+                        
+                        importBones.push(newBone);
+                    });
+                    
+                    // Add processed bones
+                    if (!result.bones) result.bones = [];
+                    result.bones = result.bones.concat(importBones);
+                }
+                
+                // 2. Slots - add with updated bone references
+                if (importFile.slots && Array.isArray(importFile.slots)) {
+                    const importSlots = importFile.slots.map(slot => {
+                        const newSlot = {...slot};
+                        
+                        // Update slot name and bone reference
+                        newSlot.name = slot.name + importSuffix;
+                        if (slot.bone) {
+                            newSlot.bone = boneNameMap[slot.bone];
+                        }
+                        
+                        return newSlot;
+                    });
+                    
+                    // Add processed slots
+                    if (!result.slots) result.slots = [];
+                    result.slots = result.slots.concat(importSlots);
+                }
+                
+                // 3. Constraints (IK, transform, path) - add with updated bone references
+                const constraintTypes = ['ik', 'transform', 'path'];
+                
+                constraintTypes.forEach(constraintType => {
+                    if (importFile[constraintType] && Array.isArray(importFile[constraintType])) {
+                        const importConstraints = importFile[constraintType].map(constraint => {
+                            const newConstraint = {...constraint};
+                            
+                            // Update constraint name
+                            newConstraint.name = constraint.name + importSuffix;
+                            
+                            // Update bone references
+                            if (constraint.target) {
+                                newConstraint.target = boneNameMap[constraint.target];
+                            }
+                            
+                            if (constraint.bones && Array.isArray(constraint.bones)) {
+                                newConstraint.bones = constraint.bones.map(bone => boneNameMap[bone]);
+                            }
+                            
+                            // Handle parent (for path constraints)
+                            if (constraint.parent) {
+                                newConstraint.parent = boneNameMap[constraint.parent];
+                            }
+                            
+                            return newConstraint;
+                        });
+                        
+                        // Add processed constraints
+                        if (!result[constraintType]) result[constraintType] = [];
+                        result[constraintType] = result[constraintType].concat(importConstraints);
+                    }
+                });
+                
+                // 4. Skin processing - add attachments to existing skin
+                if (importFile.skins && Array.isArray(importFile.skins) && importFile.skins.length > 0) {
+                    // For each skin from the imported file
+                    importFile.skins.forEach(importSkin => {
+                        // Find the corresponding skin in the result (usually "default")
+                        const targetSkin = result.skins.find(skin => skin.name === importSkin.name);
+                        
+                        if (targetSkin && importSkin.attachments) {
+                            // For each slot in the imported skin
+                            for (const slotName in importSkin.attachments) {
+                                // Create a new slot name with suffix
+                                const newSlotName = slotName + importSuffix;
+                                
+                                // Copy all attachments for this slot
+                                targetSkin.attachments[newSlotName] = JSON.parse(JSON.stringify(importSkin.attachments[slotName]));
+                            }
+                        }
+                    });
+                }
+                
+                // 5. Animation processing - correctly add to existing animations
+                if (importFile.animations) {
+                    if (!result.animations) result.animations = {};
+                    
+                    // For each animation in the imported file
+                    for (const animName in importFile.animations) {
+                        const importAnim = importFile.animations[animName];
+                        
+                        // If this animation already exists in the main file
+                        if (result.animations[animName]) {
+                            const targetAnim = result.animations[animName];
+                            
+                            // Process slot animations
+                            if (importAnim.slots) {
+                                if (!targetAnim.slots) targetAnim.slots = {};
+                                
+                                for (const slotName in importAnim.slots) {
+                                    const newSlotName = slotName + importSuffix;
+                                    targetAnim.slots[newSlotName] = JSON.parse(JSON.stringify(importAnim.slots[slotName]));
+                                }
+                            }
+                            
+                            // Process bone animations
+                            if (importAnim.bones) {
+                                if (!targetAnim.bones) targetAnim.bones = {};
+                                
+                                for (const boneName in importAnim.bones) {
+                                    const newBoneName = boneNameMap[boneName];
+                                    if (newBoneName) {
+                                        targetAnim.bones[newBoneName] = JSON.parse(JSON.stringify(importAnim.bones[boneName]));
+                                    }
+                                }
+                            }
+                            
+                            // Process drawOrder, if present
+                            if (importAnim.drawOrder && Array.isArray(importAnim.drawOrder)) {
+                                if (!targetAnim.drawOrder) targetAnim.drawOrder = [];
+                                
+                                const newDrawOrders = importAnim.drawOrder.map(drawOrder => {
+                                    const newDrawOrder = {...drawOrder};
+                                    
+                                    if (drawOrder.offsets && Array.isArray(drawOrder.offsets)) {
+                                        newDrawOrder.offsets = drawOrder.offsets.map(offset => {
+                                            const newOffset = {...offset};
+                                            if (offset.slot) {
+                                                newOffset.slot = offset.slot + importSuffix;
+                                            }
+                                            return newOffset;
+                                        });
+                                    }
+                                    
+                                    return newDrawOrder;
+                                });
+                                
+                                targetAnim.drawOrder = targetAnim.drawOrder.concat(newDrawOrders);
+                            }
+                            
+                            // Process events, if present
+                            if (importAnim.events && Array.isArray(importAnim.events)) {
+                                if (!targetAnim.events) targetAnim.events = [];
+                                
+                                const newEvents = importAnim.events.map(event => {
+                                    const newEvent = {...event};
+                                    if (event.name) {
+                                        newEvent.name = event.name + importSuffix;
+                                    }
+                                    return newEvent;
+                                });
+                                
+                                targetAnim.events = targetAnim.events.concat(newEvents);
+                            }
+                        } else {
+                            // If the animation doesn't exist in the main file, add it with a new name
+                            const newAnimName = animName + importSuffix;
+                            const newAnim = {
+                                slots: {},
+                                bones: {},
+                                events: [],
+                                drawOrder: []
+                            };
+                            
+                            // Process slot animations
+                            if (importAnim.slots) {
+                                for (const slotName in importAnim.slots) {
+                                    const newSlotName = slotName + importSuffix;
+                                    newAnim.slots[newSlotName] = JSON.parse(JSON.stringify(importAnim.slots[slotName]));
+                                }
+                            }
+                            
+                            // Process bone animations
+                            if (importAnim.bones) {
+                                for (const boneName in importAnim.bones) {
+                                    const newBoneName = boneNameMap[boneName];
+                                    if (newBoneName) {
+                                        newAnim.bones[newBoneName] = JSON.parse(JSON.stringify(importAnim.bones[boneName]));
+                                    }
+                                }
+                            }
+                            
+                            // Process drawOrder, if present
+                            if (importAnim.drawOrder && Array.isArray(importAnim.drawOrder)) {
+                                newAnim.drawOrder = importAnim.drawOrder.map(drawOrder => {
+                                    const newDrawOrder = {...drawOrder};
+                                    
+                                    if (drawOrder.offsets && Array.isArray(drawOrder.offsets)) {
+                                        newDrawOrder.offsets = drawOrder.offsets.map(offset => {
+                                            const newOffset = {...offset};
+                                            if (offset.slot) {
+                                                newOffset.slot = offset.slot + importSuffix;
+                                            }
+                                            return newOffset;
+                                        });
+                                    }
+                                    
+                                    return newDrawOrder;
+                                });
+                            }
+                            
+                            // Process events, if present
+                            if (importAnim.events && Array.isArray(importAnim.events)) {
+                                newAnim.events = importAnim.events.map(event => {
+                                    const newEvent = {...event};
+                                    if (event.name) {
+                                        newEvent.name = event.name + importSuffix;
+                                    }
+                                    return newEvent;
+                                });
+                            }
+                            
+                            // Add the new animation to the result
+                            result.animations[newAnimName] = newAnim;
+                        }
+                    }
+                }
+                
+                // 6. Update version for smooth transition if needed
+                if (importFile.skeleton && importFile.skeleton.spine && !result.skeleton.spine) {
+                    result.skeleton.spine = importFile.skeleton.spine;
+                }
+                
+                return result;
+            }
+        });
+    </script>
 </body>
 </html>
