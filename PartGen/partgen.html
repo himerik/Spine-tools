@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spine Particle Generator</title>
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --accent: #8a2be2;
+            --text-primary: #f5f5f5;
+            --text-secondary: #b3b3b3;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, #8a2be2, #4169e1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .app-card {
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-info {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .app-image {
+            flex: 0 0 400px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background-color: #282828;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .app-description {
+            flex: 1;
+        }
+        
+        .app-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .description-text {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+        
+        .features {
+            list-style-type: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .features li {
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .features li::before {
+            content: "•";
+            color: var(--accent);
+            font-size: 1.2rem;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        
+        .app-link {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(90deg, #8a2be2, #4169e1);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: opacity 0.3s ease;
+        }
+        
+        .app-link:hover {
+            opacity: 0.9;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            color: var(--text-secondary);
+            border-top: 1px solid #333;
+        }
+        
+        /* Animation for stars */
+        @keyframes orbit {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(360px, 0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .app-info {
+                flex-direction: column;
+            }
+            
+            .app-image {
+                flex: 0 0 auto;
+                max-width: 100%;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Math Generator</h1>
+            <p class="subtitle">Create JSON animation with mathematical functions</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="app-card">
+                <div class="app-info">
+                    <div class="app-image">
+                        <svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background grid -->
+                            <defs>
+                                <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                    <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#333" stroke-width="0.5"/>
+                                </pattern>
+                                <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+                                    <rect width="100" height="100" fill="url(#smallGrid)"/>
+                                    <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#444" stroke-width="1"/>
+                                </pattern>
+                            </defs>
+                            <rect width="400" height="300" fill="#282828"/>
+                            <rect width="400" height="300" fill="url(#grid)"/>
+                            
+                            <!-- Coordinate axes -->
+                            <line x1="200" y1="0" x2="200" y2="300" stroke="#555" stroke-width="1"/>
+                            <line x1="0" y1="150" x2="400" y2="150" stroke="#555" stroke-width="1"/>
+                            
+                            <!-- Sine wave path -->
+                            <path d="M 20 150 C 60 100, 100 200, 140 150 C 180 100, 220 200, 260 150 C 300 100, 340 200, 380 150" 
+                                  stroke="#4169e1" stroke-width="2" fill="none" opacity="0.3"/>
+                            
+                            <!-- Circle path -->
+                            <path d="M 70 120 C 120 40, 280 40, 330 120 C 370 180, 330 220, 200 220 C 70 220, 30 180, 70 120" 
+                                  stroke="#8a2be2" stroke-width="2" fill="none" opacity="0.3"/>
+                            
+                            <!-- Stars at different positions on the paths -->
+                            <g id="star1" transform="translate(60, 120)">
+                                <polygon points="0,-10 2.2,-3.4 9.5,-3.4 3.6,0.9 5.9,7.5 0,3.4 -5.9,7.5 -3.6,0.9 -9.5,-3.4 -2.2,-3.4" 
+                                         fill="#ffff00" stroke="#ffcc00" stroke-width="1">
+                                    <animateTransform attributeName="transform" type="rotate" 
+                                                      from="0" to="360" dur="4s" repeatCount="indefinite"/>
+                                </polygon>
+                            </g>
+                            
+                            <g id="star2" transform="translate(180, 200)">
+                                <polygon points="0,-12 2.6,-4 11,-4 4.2,1 6.9,9 0,4 -6.9,9 -4.2,1 -11,-4 -2.6,-4" 
+                                         fill="#ffff00" stroke="#ffcc00" stroke-width="1">
+                                    <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>
+                                    <animateTransform attributeName="transform" type="rotate" 
+                                                      from="0" to="-360" dur="8s" repeatCount="indefinite"/>
+                                </polygon>
+                            </g>
+                            
+                            <g id="star3" transform="translate(300, 100)">
+                                <polygon points="0,-15 3.3,-5 14,-5 5.3,1.5 8.5,11.5 0,5 -8.5,11.5 -5.3,1.5 -14,-5 -3.3,-5" 
+                                         fill="#ffff00" stroke="#ffcc00" stroke-width="1">
+                                    <animateTransform attributeName="transform" type="rotate" 
+                                                      from="0" to="360" dur="6s" repeatCount="indefinite"/>
+                                </polygon>
+                            </g>
+                            
+                            <!-- Moving star along sine wave -->
+                            <g id="movingStar" transform="translate(20, 150)">
+                                <polygon points="0,-10 2.2,-3.4 9.5,-3.4 3.6,0.9 5.9,7.5 0,3.4 -5.9,7.5 -3.6,0.9 -9.5,-3.4 -2.2,-3.4" 
+                                         fill="#ffff00" stroke="#ffcc00" stroke-width="1">
+                                    <animateTransform attributeName="transform" type="rotate" 
+                                                      from="0" to="360" dur="2s" repeatCount="indefinite"/>
+                                </polygon>
+                                <animateMotion path="M 0 0 C 40 -50, 80 50, 120 0 C 160 -50, 200 50, 240 0 C 280 -50, 320 50, 360 0" 
+                                             dur="7s" repeatCount="indefinite"/>
+                            </g>
+                            
+                            <!-- UI elements -->
+                            <rect x="10" y="10" width="120" height="65" rx="5" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+                            <text x="20" y="30" fill="#b3b3b3" font-size="10">X: 20*sin(t*10)</text>
+                            <text x="20" y="45" fill="#b3b3b3" font-size="10">Y: 50*cos(t*5)</text>
+                            <text x="20" y="60" fill="#b3b3b3" font-size="10">Rotation: t*360</text>
+                            
+                            <rect x="300" y="250" width="90" height="40" rx="5" fill="#2A3B4C" stroke="#555" stroke-width="1"/>
+                            <text x="325" y="275" fill="#f5f5f5" font-size="12" text-anchor="middle">Generate</text>
+                        </svg>
+                    </div>
+                    <div class="app-description">
+                        <h2 class="app-title">Mathematical Animation Generator</h2>
+                        <p class="description-text">Create complex procedural animations for Spine 2D using mathematical functions. This tool allows you to define X, Y positions, rotation, and scale with mathematical expressions, preview the animation in real-time, and export directly to Spine JSON format.</p>
+                        
+                        <ul class="features">
+                            <li>Define trajectory using mathematical functions (sin, cos, polynomial expressions)</li>
+                            <li>Support for random values with the rnd() function for variation</li>
+                            <li>Real-time animation preview with trajectory visualization</li>
+                            <li>Automatic orientation along trajectory path</li>
+                            <li>Multiple instance generation with randomized parameters</li>
+                            <li>One-click export to Spine JSON format</li>
+                        </ul>
+                        
+                        <a href="https://www.dropbox.com/scl/fi/6435ivpaglc4dqootbxwa/SpartGen.exe?rlkey=8n9a9uz0neiz3yzmqq1ttrkrd&st=vlohwek3&dl=0" class="app-link">Download app</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 Spine Tools. All rights reserved.</p>
+    </footer>
+</body>
+</html>
