@@ -1,24 +1,167 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Мой сайт</title>
-  <style>
-    nav a { margin-right: 10px; cursor: pointer; }
-    #content { margin-top: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Projects Portfolio</title>
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --accent: #8a2be2;
+            --text-primary: #f5f5f5;
+            --text-secondary: #b3b3b3;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, #8a2be2, #4169e1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+        
+        .projects {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        .project-card {
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Removed project-image styles */
+        
+        .project-content {
+            padding: 0;
+        }
+        
+        .project-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .project-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+        
+        .project-link {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(90deg, #8a2be2, #4169e1);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: opacity 0.3s ease;
+        }
+        
+        .project-link:hover {
+            opacity: 0.9;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            color: var(--text-secondary);
+            border-top: 1px solid #333;
+        }
+        
+        @media (max-width: 768px) {
+            .projects {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <nav>
-    <a onclick="loadPage('about.html')">О нас</a>
-    <a onclick="loadPage('contact.html')">Контакты</a>
-  </nav>
-
-  <div id="content">
-    <h1>Добро пожаловать!</h1>
-    <p>Это главная страница.</p>
-  </div>
-
-  <script src="scripts/main.js"></script>
+    <div class="container">
+        <header>
+            <h1>My Projects Portfolio</h1>
+            <p class="subtitle">A collection of my personal projects and tools</p>
+        </header>
+        
+        <div class="projects">
+            <!-- Project 1 -->
+            <div class="project-card">
+                <div class="project-content">
+                    <h2 class="project-title">Spine JSON Merger</h2>
+                    <p class="project-description">Web tool for merging Spine 3.8.75 JSON files with proper hierarchy preservation. Combines bones, slots, constraints and animations with automatic renaming to prevent conflicts.</p>
+                    <a href="#" class="project-link">View Project</a>
+                </div>
+            </div>
+            
+            <!-- Project 2 -->
+            <div class="project-card">
+                <div class="project-content">
+                    <h2 class="project-title">Frames to Spine Animation Converter</h2>
+                    <p class="project-description">This application converts video files or image sequences into Spine animation format JSON files. It allows to preview frames, select the range of frames to include, and customize animation parameters.</p>
+                    <a href="#" class="project-link">View Project</a>
+                </div>
+            </div>
+            
+            <!-- You can add more project cards here -->
+            <!-- Example of an empty card for future projects -->
+            <div class="project-card">
+                <div class="project-content">
+                    <h2 class="project-title">Coming Soon</h2>
+                    <p class="project-description">New exciting project in development. Stay tuned for updates!</p>
+                    <a href="#" class="project-link">More Info</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 My Projects Portfolio. All rights reserved.</p>
+    </footer>
 </body>
 </html>
