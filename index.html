@@ -25,12 +25,28 @@
             background-color: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
+            position: relative;
+        }
+        
+        .hero-svg {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
+            position: relative;
+            z-index: 2;
+            padding-top: 220px; /* Обеспечивает место для SVG + отступ */
         }
         
         header {
@@ -122,6 +138,9 @@
     </style>
 </head>
 <body>
+    <!-- Здесь будет подключаться ваш SVG -->
+    <img src="spine-2d-animation-svg.svg" alt="Spine Animation Header" class="hero-svg">
+    
     <div class="container">
         <header>
             <h1>Spine tools</h1>
@@ -165,7 +184,6 @@
                     <a href="#" class="project-link">Not yet</a>
                 </div>
             </div>
-
             
         </div>
     </div>
