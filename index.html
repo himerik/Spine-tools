@@ -53,9 +53,11 @@
         }
         
         .projects {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
         
         .project-card {
@@ -112,10 +114,6 @@
         }
         
         @media (max-width: 768px) {
-            .projects {
-                grid-template-columns: 1fr;
-            }
-            
             h1 {
                 font-size: 2rem;
             }
