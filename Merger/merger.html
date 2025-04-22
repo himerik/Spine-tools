@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frames to Spine Animation Converter</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-color: #4b6eaf;
+            --text-color: #e0e0e0;
+            --text-secondary: #aaaaaa;
+            --border-color: #333333;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            margin: 20px 0 10px 0;
+            font-size: 2.5em;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        
+        h2 {
+            color: var(--accent-color);
+            margin-top: 0;
+            font-weight: 500;
+        }
+        
+        h3 {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+        
+        .section {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .illustration {
+            text-align: center;
+            background-color: transparent;
+            box-shadow: none;
+            border: none;
+            padding: 0;
+        }
+        
+        .illustration img, .illustration svg {
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+            border-radius: 8px;
+        }
+        
+        .download {
+            text-align: center;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 14px 36px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            border: none;
+            margin-top: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .download-btn:hover {
+            background-color: #5a7dc5;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .note {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+        
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .feature-list {
+            margin-left: 10px;
+            padding-left: 20px;
+        }
+        
+        .feature-list li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+        
+        .feature-list li::before {
+            content: "•";
+            color: var(--accent-color);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+        
+        p {
+            color: var(--text-color);
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="illustration">
+        <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- Dark Background -->
+            <rect width="400" height="200" fill="#2B2B2B" rx="10" ry="10"/>
+            
+            <!-- Left Panel - Input Section -->
+            <rect x="20" y="20" width="120" height="160" fill="#3C3F41" rx="5" ry="5"/>
+            
+            <!-- Video/Image Input Icon -->
+            <rect x="35" y="35" width="90" height="60" fill="#1E1E1E" rx="3" ry="3"/>
+            <path d="M65 50 L95 65 L65 80 Z" fill="#4B6EAF"/>
+            <text x="80" y="110" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="10">Input Source</text>
+            
+            <!-- Arrow from input to processing -->
+            <path d="M150 80 L180 80" stroke="#E0E0E0" stroke-width="2" fill="none"/>
+            <polygon points="180,80 175,76 175,84" fill="#E0E0E0"/>
+            
+            <!-- Middle Panel - Processing Section -->
+            <rect x="190" y="40" width="60" height="120" fill="#3C3F41" rx="5" ry="5"/>
+            <text x="220" y="30" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="10">Processing</text>
+            
+            <!-- Frame Indicators -->
+            <rect x="200" y="55" width="40" height="25" fill="#1E1E1E" rx="2" ry="2"/>
+            <rect x="200" y="85" width="40" height="25" fill="#1E1E1E" rx="2" ry="2"/>
+            <rect x="200" y="115" width="40" height="25" fill="#1E1E1E" rx="2" ry="2"/>
+            
+            <text x="220" y="70" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="8">Frame 1</text>
+            <text x="220" y="100" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="8">Frame 2</text>
+            <text x="220" y="130" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="8">Frame 3</text>
+            
+            <!-- Arrow from processing to output -->
+            <path d="M260 80 L290 80" stroke="#E0E0E0" stroke-width="2" fill="none"/>
+            <polygon points="290,80 285,76 285,84" fill="#E0E0E0"/>
+            
+            <!-- Right Panel - Output Section -->
+            <rect x="300" y="20" width="80" height="160" fill="#3C3F41" rx="5" ry="5"/>
+            <text x="340" y="40" text-anchor="middle" fill="#E0E0E0" font-family="Arial" font-size="10">Spine JSON</text>
+            
+            <!-- JSON Icon -->
+            <rect x="310" y="50" width="60" height="100" fill="#1E1E1E" rx="3" ry="3"/>
+            <text x="340" y="70" text-anchor="middle" fill="#4B6EAF" font-family="monospace" font-size="8">{</text>
+            <text x="340" y="85" text-anchor="middle" fill="#E0E0E0" font-family="monospace" font-size="6">"animation": {</text>
+            <text x="340" y="95" text-anchor="middle" fill="#E0E0E0" font-family="monospace" font-size="6">"slots": {...}</text>
+            <text x="340" y="105" text-anchor="middle" fill="#E0E0E0" font-family="monospace" font-size="6">"bones": [...],</text>
+            <text x="340" y="115" text-anchor="middle" fill="#E0E0E0" font-family="monospace" font-size="6">"frames": [...]</text>
+            <text x="340" y="125" text-anchor="middle" fill="#E0E0E0" font-family="monospace" font-size="6">}</text>
+            <text x="340" y="140" text-anchor="middle" fill="#4B6EAF" font-family="monospace" font-size="8">}</text>
+            
+            <!-- Removed the App Title that was here -->
+        </svg>
+    </div>
+    
+    <header>
+        <h1>Frames to Spine Animation Converter</h1>
+        <p style="font-size: 1.2em; opacity: 0.8;">Convert video and image sequences into Spine animations</p>
+    </header>
+    
+    <div class="section">
+        <h2>Features</h2>
+        <ul class="feature-list">
+            <li>Import frames from video files</li>
+            <li>Import frames from image sequences</li>
+            <li>Preview and select specific frame ranges</li>
+            <li>Customize animation parameters</li>
+            <li>Adjust slot name and dimensions</li>
+            <li>Generate Spine-compatible JSON files</li>
+            <li>Option to save or discard source frames</li>
+        </ul>
+    </div>
+    
+    <div class="section download">
+        <h2>Download</h2>
+        <p>Get the latest version of the application:</p>
+        <a href="FramesToSpineConverter.zip" class="download-btn">Download Now</a>
+        <p class="note">Version 1.0.0 | Windows | 5.2 MB</p>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 Frames to Spine Animation Converter. All rights reserved.</p>
+    </footer>
+</body>
+</html>
