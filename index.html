@@ -4,7 +4,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spine 2D~1 tools</title>
+    <title>Spine 2D Tools</title>
     <style>
         :root {
             --bg-primary: #121212;
@@ -28,17 +28,25 @@
             position: relative;
         }
         
-        .hero-svg {
+        .hero-container {
             width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            background-color: var(--bg-secondary);
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .hero-svg {
+            width: 400px;
+            height: 200px;
             display: block;
-            position: absolute;
-            top: 0px; /* Поднимаем SVG выше, чтобы нижняя часть была видна */
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1;
-            clip-path: inset(0px 0 0 0); /* Обрезаем 50px сверху, остальные стороны без обрезки */
+            object-fit: contain;
         }
         
         .container {
@@ -47,12 +55,12 @@
             padding: 2rem;
             position: relative;
             z-index: 2;
-            padding-top: 220px; /* Обеспечивает место для SVG + отступ */
         }
         
         header {
             text-align: center;
             margin-bottom: 3rem;
+            padding-top: 1rem;
         }
         
         h1 {
@@ -84,6 +92,8 @@
             padding: 1.5rem;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
         }
         
         .project-card:hover {
@@ -91,21 +101,35 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
         
-        /* Removed project-image styles */
-        
         .project-content {
-            padding: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .project-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            gap: 10px;
+        }
+        
+        .project-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
         }
         
         .project-title {
             font-size: 1.5rem;
-            margin-bottom: 0.5rem;
             color: var(--text-primary);
+            flex: 1;
         }
         
         .project-description {
             color: var(--text-secondary);
             margin-bottom: 1.5rem;
+            flex: 1;
         }
         
         .project-link {
@@ -117,6 +141,8 @@
             border-radius: 5px;
             font-weight: bold;
             transition: opacity 0.3s ease;
+            text-align: center;
+            align-self: flex-start;
         }
         
         .project-link:hover {
@@ -133,14 +159,30 @@
         
         @media (max-width: 768px) {
             h1 {
-                font-size: 4rem;
+                font-size: 2rem;
+            }
+            
+            .projects {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .hero-svg {
+                width: 100%;
+                height: auto;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Здесь будет подключаться ваш SVG -->
-    <img src="spine-2d-animation-svg.svg" alt="Spine Animation Header" class="hero-svg">
+    <!-- Hero SVG Container -->
+    <div class="hero-container">
+        <!-- Placeholder SVG (replace with your actual SVG) -->
+        <img src="spine-2d-animation-svg.svg">
+    </div>
     
     <div class="container">
         <header>
@@ -152,7 +194,12 @@
             <!-- Project 1 -->
             <div class="project-card">
                 <div class="project-content">
-                    <h2 class="project-title">Spine JSON Merger</h2>
+                    <div class="project-header">
+                        <svg class="project-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="url(#grad1)" d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/>
+                        </svg>
+                        <h2 class="project-title">Spine JSON Merger</h2>
+                    </div>
                     <p class="project-description">Web tool for merging Spine 3.8.75 JSON files with proper hierarchy preservation. Combines bones, slots, constraints and animations with automatic renaming to prevent conflicts.</p>
                     <a href="Merger/merger.html" class="project-link">View Project</a>
                 </div>
@@ -161,31 +208,44 @@
             <!-- Project 2 -->
             <div class="project-card">
                 <div class="project-content">
-                    <h2 class="project-title">Frames to Spine Animation Converter</h2>
+                    <div class="project-header">
+                        <svg class="project-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="url(#grad1)" d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z"/>
+                        </svg>
+                        <h2 class="project-title">Frames to Spine Animation Converter</h2>
+                    </div>
                     <p class="project-description">This application converts video files or image sequences into Spine animation format JSON files. It allows to preview frames, select the range of frames to include, and customize animation parameters.</p>
                     <a href="Framer/framer.html" class="project-link">View Project</a>
                 </div>
             </div>
             
-            <!-- You can add more project cards here -->
-            <!-- Example of an empty card for future projects -->
-            
+            <!-- Project 3 -->
             <div class="project-card">
                 <div class="project-content">
-                    <h2 class="project-title">Particle Generator</h2>
+                    <div class="project-header">
+                        <svg class="project-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="url(#grad1)" d="M6,14.5c0,2.49,2.01,4.5,4.5,4.5s4.5-2.01,4.5-4.5S12.99,10,10.5,10S6,12.01,6,14.5z M11,7h2v2h-2V7z M11,11h2v2h-2V11z M9,11H7v2h2V11z M17,11h-2v2h2V11z M9,7H7v2h2V7z M17,7h-2v2h2V7z"/>
+                        </svg>
+                        <h2 class="project-title">Particle Generator</h2>
+                    </div>
                     <p class="project-description">Create procedural particles animations for Spine 2D</p>
                     <a href="PartGen/partgen.html" class="project-link">View Project</a>
-                  </div>
+                </div>
             </div>
             
+            <!-- Project 4 -->
             <div class="project-card">
                 <div class="project-content">
-                    <h2 class="project-title">Coming Soon</h2>
+                    <div class="project-header">
+                        <svg class="project-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="url(#grad1)" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                        </svg>
+                        <h2 class="project-title">Coming Soon</h2>
+                    </div>
                     <p class="project-description">New exciting project in development. Stay tuned for updates!</p>
                     <a href="#" class="project-link">Not yet</a>
                 </div>
             </div>
-            
         </div>
     </div>
     
