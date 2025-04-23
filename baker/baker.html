@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Запекатель анимаций Spine</title>
+    <title>Spine Animation Baker</title>
     <style>
         :root {
             --bg-color: #1e1e2e;
@@ -174,7 +174,7 @@
             color: var(--accent-color);
         }
         
-        /* Индикатор загрузки */
+        /* Loading indicator */
         #spinner {
             display: none;
             width: 20px;
@@ -262,55 +262,55 @@
         }
     </style>
     
-    <!-- Подключаем библиотеку Spine локально из той же папки -->
+    <!-- Including Spine library locally from the same folder -->
     <script src="spine-core.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Запекатель анимаций Spine</h1>
-        <p class="description">Инструмент для запекания анимаций Spine с удалением костей и ограничителей</p>
+        <h1>Spine Animation Baker</h1>
+        <p class="description">Tool for baking Spine animations with bone and constraint removal</p>
         
         <div class="card">
             <div class="input-group">
-                <label for="jsonFile">Выберите JSON файл:</label>
+                <label for="jsonFile">Select JSON file:</label>
                 <input type="file" id="jsonFile" accept=".json">
             </div>
             
             <div class="fps-selector">
-                <h3>Настройки частоты кадров</h3>
+                <h3>Frame Rate Settings</h3>
                 <div class="radio-group">
                     <label class="radio-option">
                         <input type="radio" name="fpsOption" value="custom" checked> 
-                        Пользовательский FPS: 
+                        Custom FPS: 
                         <input type="number" id="customFps" min="1" max="240" value="30">
                     </label>
                     <label class="radio-option">
                         <input type="radio" name="fpsOption" value="keyframes"> 
-                        Только ключевые кадры
+                        Keyframes only
                     </label>
                     <label class="radio-option">
                         <input type="radio" name="fpsOption" value="high"> 
-                        Высокий FPS (60)
+                        High FPS (60)
                     </label>
                 </div>
             </div>
             
-            <button id="bakeButton">Запечь все анимации</button>
+            <button id="bakeButton">Bake All Animations</button>
             
-            <div id="status">Ожидание выбора файла...</div>
+            <div id="status">Waiting for file selection...</div>
             
             <div id="animationList">
-                <!-- Здесь будет список анимаций и их статус -->
+                <!-- Animation list and status will appear here -->
             </div>
             
             <div id="result-section">
-                <h3>Обработка завершена</h3>
-                <button id="download-btn">Скачать запеченную анимацию</button>
+                <h3>Processing Complete</h3>
+                <button id="download-btn">Download Baked Animation</button>
             </div>
         </div>
         
         <div class="footer">
-            Для запекания необходимо указать JSON-файл анимации Spine и частоту кадров.
+            To bake animations, please select a Spine JSON file and set the frame rate.
         </div>
     </div>
 
