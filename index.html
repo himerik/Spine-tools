@@ -4,7 +4,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spine Animation Generator</title>
+    <title>Spine 2D tools</title>
     <style>
         :root {
             --bg-primary: #121212;
@@ -25,17 +25,34 @@
             background-color: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
+            position: relative;
+        }
+        
+        .hero-svg {
+            width: 80%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: block;
+            position: absolute;
+            top: -50px; /* Поднимаем SVG выше, чтобы нижняя часть была видна */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            clip-path: inset(50px 0 0 0); /* Обрезаем 50px сверху, остальные стороны без обрезки */
         }
         
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
+            position: relative;
+            z-index: 2;
+            padding-top: 420px; /* Обеспечивает место для SVG + отступ */
         }
         
         header {
             text-align: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 3rem;
         }
         
         h1 {
@@ -51,17 +68,17 @@
         .subtitle {
             color: var(--text-secondary);
             font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto;
         }
         
-        .main-content {
+        .projects {
             display: flex;
             flex-direction: column;
             gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
         
-        .app-card {
+        .project-card {
             background-color: var(--bg-secondary);
             border-radius: 10px;
             padding: 1.5rem;
@@ -69,73 +86,31 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
-        .app-card:hover {
+        .project-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
         
-        .app-content {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+        /* Removed project-image styles */
+        
+        .project-content {
+            padding: 0;
         }
         
-        .app-image {
-            width: 100%;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            background-color: #282828;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            /* Added padding to create more space at the bottom */
-            padding-bottom: 20px;
-        }
-        
-        /* Add specific styling for the SVG to prevent cutoff */
-        .app-image svg {
-            width: 100%;
-            height: auto;
-            min-height: 220px; /* Ensure minimum height to prevent cutoff */
-            display: block; /* Remove any potential inline spacing issues */
-        }
-        
-        .app-title {
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
+        .project-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
             color: var(--text-primary);
         }
         
-        .description-text {
+        .project-description {
             color: var(--text-secondary);
             margin-bottom: 1.5rem;
         }
         
-        .features {
-            list-style-type: none;
-            margin-bottom: 1.5rem;
-        }
-        
-        .features li {
-            margin-bottom: 0.5rem;
-            position: relative;
-            padding-left: 1.5rem;
-        }
-        
-        .features li::before {
-            content: "•";
-            color: var(--accent);
-            font-size: 1.2rem;
-            position: absolute;
-            left: 0;
-            top: 0;
-        }
-        
-        .app-link {
+        .project-link {
             display: inline-block;
-            padding: 0.8rem 1.5rem;
+            padding: 0.6rem 1.2rem;
             background: linear-gradient(90deg, #8a2be2, #4169e1);
             color: white;
             text-decoration: none;
@@ -144,7 +119,7 @@
             transition: opacity 0.3s ease;
         }
         
-        .app-link:hover {
+        .project-link:hover {
             opacity: 0.9;
         }
         
@@ -156,47 +131,9 @@
             border-top: 1px solid #333;
         }
         
-        /* Animation for stars */
-        @keyframes orbit {
-            0% {
-                transform: translate(0, 0);
-            }
-            100% {
-                transform: translate(360px, 0);
-            }
-        }
-        
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.2);
-                opacity: 0.8;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-        
-        @keyframes rotate {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-        
         @media (max-width: 768px) {
             h1 {
                 font-size: 2rem;
-            }
-            
-            .container {
-                padding: 1.5rem;
             }
         }
     </style>
