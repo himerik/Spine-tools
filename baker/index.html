@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Запекатель анимаций Spine</title>
+    <style>
+        :root {
+            --bg-color: #1e1e2e;
+            --card-bg: #2a2a3c;
+            --text-color: #e0e0f0;
+            --accent-color: #4e77ba;
+            --accent-hover: #6492db;
+            --success-color: #66bb6a;
+            --error-color: #ef5350;
+            --separator-color: #414160;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 90%;
+            padding: 40px 20px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        p.description {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0.8;
+            font-size: 16px;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .input-group input[type="file"] {
+            width: 100%;
+            background-color: var(--bg-color);
+            border: 1px solid var(--separator-color);
+            padding: 12px;
+            border-radius: 6px;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+        }
+
+        .input-group input[type="file"]::file-selector-button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin-right: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .input-group input[type="file"]::file-selector-button:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        .fps-selector {
+            margin-bottom: 20px;
+        }
+        
+        .fps-selector h3 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-weight: 500;
+            font-size: 18px;
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .radio-option input[type="radio"] {
+            margin-right: 8px;
+        }
+        
+        .radio-option input[type="number"] {
+            width: 60px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--separator-color);
+            padding: 6px;
+            border-radius: 4px;
+            color: var(--text-color);
+            margin-left: 8px;
+        }
+        
+        button#bakeButton {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 24px;
+        }
+        
+        button#bakeButton:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        button#bakeButton:disabled {
+            background-color: var(--separator-color);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        #status {
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 24px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-color);
+        }
+        
+        #status.success {
+            color: var(--success-color);
+        }
+        
+        #status.error {
+            color: var(--error-color);
+        }
+        
+        #status.working {
+            color: var(--accent-color);
+        }
+        
+        /* Индикатор загрузки */
+        #spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 3px solid rgba(78, 119, 186, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid var(--accent-color);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #animationList {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px 0;
+            border-top: 1px solid var(--separator-color);
+            display: none;
+        }
+        
+        .animation-item {
+            background-color: var(--bg-color);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .animation-name {
+            font-weight: 500;
+        }
+        
+        .animation-status {
+            color: var(--accent-color);
+        }
+        
+        .animation-status.success {
+            color: var(--success-color);
+        }
+        
+        .animation-status.error {
+            color: var(--error-color);
+        }
+        
+        #result-section {
+            margin-top: 24px;
+            display: none;
+        }
+        
+        #result-section h3 {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        
+        #download-btn {
+            background-color: var(--success-color);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+        
+        #download-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            opacity: 0.6;
+            font-size: 14px;
+        }
+    </style>
+    
+    <!-- Подключаем библиотеку Spine локально из той же папки -->
+    <script src="spine-core.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Запекатель анимаций Spine</h1>
+        <p class="description">Инструмент для запекания анимаций Spine с удалением костей и ограничителей</p>
+        
+        <div class="card">
+            <div class="input-group">
+                <label for="jsonFile">Выберите JSON файл:</label>
+                <input type="file" id="jsonFile" accept=".json">
+            </div>
+            
+            <div class="fps-selector">
+                <h3>Настройки частоты кадров</h3>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="fpsOption" value="custom" checked> 
+                        Пользовательский FPS: 
+                        <input type="number" id="customFps" min="1" max="240" value="30">
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="fpsOption" value="keyframes"> 
+                        Только ключевые кадры
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="fpsOption" value="high"> 
+                        Высокий FPS (60)
+                    </label>
+                </div>
+            </div>
+            
+            <button id="bakeButton">Запечь все анимации</button>
+            
+            <div id="status">Ожидание выбора файла...</div>
+            
+            <div id="animationList">
+                <!-- Здесь будет список анимаций и их статус -->
+            </div>
+            
+            <div id="result-section">
+                <h3>Обработка завершена</h3>
+                <button id="download-btn">Скачать запеченную анимацию</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Для запекания необходимо указать JSON-файл анимации Spine и частоту кадров.
+        </div>
+    </div>
+
+    <script src="spine-baker.js"></script>
+    
+</body>
+</html>
