@@ -1,4 +1,43 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -218,7 +257,7 @@
         </header>
         
         <div class="info-block">
-            <p>This tool merges two Spine 3.8.75 JSON files with proper hierarchy preservation. Combines bones, slots, constraints and animations with automatic renaming to prevent conflicts. Works directly in browser.</p>
+            <p>This tool merges two Spine 3.8.75 JSON files with proper hierarchy preservation. Combines bones, slots, constraints, and animations with automatic renaming to prevent conflicts. Works directly in browser.</p>
         </div>
         
         <div class="file-area">
@@ -252,7 +291,7 @@
     </div>
     
     <footer>
-        <p>&copy; 2025 Spine Tools. All rights reserved.</p>
+        <p>© 2025 Spine Tools. All rights reserved.</p>
     </footer>
     
     <script>
@@ -280,30 +319,14 @@
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     try {
-                        const content = event.target.result;
-                        mainFileData = JSON.parse(content);
+                        mainFileData = JSON.parse(event.target.result);
                         mainContentArea.value = JSON.stringify(mainFileData, null, 2).slice(0, 1000) + '...';
-                        mainStatus.textContent = `File loaded: ${file.name} (${formatFileSize(file.size)})`;
-                        validateSpineFile(mainFileData, mainStatus);
+                        mainStatus.textContent = `File loaded: ${file.name}`;
                     } catch (error) {
                         mainStatus.textContent = 'Error: Invalid JSON file';
-                        console.error(error);
                     }
                 };
                 reader.readAsText(file);
-            });
-            
-            // Allow direct input in text areas
-            mainContentArea.addEventListener('input', function() {
-                try {
-                    if (mainContentArea.value.trim()) {
-                        mainFileData = JSON.parse(mainContentArea.value);
-                        mainStatus.textContent = 'JSON loaded from text field';
-                        validateSpineFile(mainFileData, mainStatus);
-                    }
-                } catch (error) {
-                    mainStatus.textContent = 'Error: Invalid JSON';
-                }
             });
             
             // Import file upload handling
@@ -314,48 +337,15 @@
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     try {
-                        const content = event.target.result;
-                        importFileData = JSON.parse(content);
+                        importFileData = JSON.parse(event.target.result);
                         importContentArea.value = JSON.stringify(importFileData, null, 2).slice(0, 1000) + '...';
-                        importStatus.textContent = `File loaded: ${file.name} (${formatFileSize(file.size)})`;
-                        validateSpineFile(importFileData, importStatus);
+                        importStatus.textContent = `File loaded: ${file.name}`;
                     } catch (error) {
                         importStatus.textContent = 'Error: Invalid JSON file';
-                        console.error(error);
                     }
                 };
                 reader.readAsText(file);
             });
-            
-            // Allow direct input in text areas
-            importContentArea.addEventListener('input', function() {
-                try {
-                    if (importContentArea.value.trim()) {
-                        importFileData = JSON.parse(importContentArea.value);
-                        importStatus.textContent = 'JSON loaded from text field';
-                        validateSpineFile(importFileData, importStatus);
-                    }
-                } catch (error) {
-                    importStatus.textContent = 'Error: Invalid JSON';
-                }
-            });
-            
-            // Check if file looks like a Spine file
-            function validateSpineFile(data, statusElement) {
-                const requiredProps = ['skeleton', 'bones'];
-                const missingProps = requiredProps.filter(prop => !data[prop]);
-                
-                if (missingProps.length > 0) {
-                    statusElement.textContent += ' - Warning: File may not be a valid Spine file (missing properties: ' + missingProps.join(', ') + ')';
-                }
-            }
-            
-            // Format file size
-            function formatFileSize(bytes) {
-                if (bytes < 1024) return bytes + ' bytes';
-                else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-                else return (bytes / 1048576).toFixed(1) + ' MB';
-            }
             
             // Merge button click handling
             mergeButton.addEventListener('click', function() {
@@ -365,15 +355,17 @@
                 }
                 
                 try {
-                    const mergedData = mergeSpineFiles(mainFileData, importFileData);
-                    resultContent.value = JSON.stringify(mergedData, null, 2);
-                    resultStatus.textContent = 'Merge completed successfully';
+                    console.log('Starting merge');
+                    resultStatus.textContent = 'Processing...';
                     resultContainer.classList.remove('hidden');
                     
-                    // Scroll to result
-                    resultContainer.scrollIntoView({ behavior: 'smooth' });
+                    const mergedData = mergeSpineFiles(mainFileData, importFileData);
+                    resultContent.value = JSON.stringify(mergedData);
+                    resultStatus.textContent = 'Merge completed successfully';
+                    
+                    console.log('Merge completed');
                 } catch (error) {
-                    resultStatus.textContent = 'Error during merge: ' + error.message;
+                    resultStatus.textContent = 'Error: ' + error.message;
                     resultContainer.classList.remove('hidden');
                     console.error(error);
                 }
@@ -392,285 +384,174 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+                console.log('Download initiated');
             });
+            
+            // Function for deep copying
+            function deepCopy(obj) {
+                if (obj === null || typeof obj !== 'object') return obj;
+                if (Array.isArray(obj)) return obj.map(deepCopy);
+                const copy = {};
+                for (const key in obj) {
+                    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                        copy[key] = deepCopy(obj[key]);
+                    }
+                }
+                return copy;
+            }
             
             // Main function for merging Spine files
             function mergeSpineFiles(mainFile, importFile) {
-                // Create a deep copy of the main file to avoid modifying the original
-                const result = JSON.parse(JSON.stringify(mainFile));
+                console.log('Merging files');
                 
-                // Generate a unique suffix for imported elements
+                const result = deepCopy(mainFile);
                 const importSuffix = '_imp' + Date.now().toString().slice(-4);
-                
-                // Get original bone names to create a mapping
                 const boneNameMap = {};
                 
-                // Find the root bone name of the main file (usually "root")
+                // Find root bone name
                 let mainRootBoneName = null;
                 if (result.bones && Array.isArray(result.bones)) {
                     const rootBone = result.bones.find(bone => !bone.parent);
-                    if (rootBone) {
-                        mainRootBoneName = rootBone.name;
-                    }
+                    if (rootBone) mainRootBoneName = rootBone.name;
                 }
                 
-                // 1. Bones - add with hierarchy preservation
+                // Bones
                 if (importFile.bones && Array.isArray(importFile.bones)) {
-                    // First create a map of original bone names for renaming
                     importFile.bones.forEach(bone => {
                         const originalName = bone.name;
                         const newName = bone.name === "root" ? mainRootBoneName : bone.name + importSuffix;
                         boneNameMap[originalName] = newName;
                     });
                     
-                    // Get the list of bones to import, excluding the root bone
-                    const importBones = [];
-                    
-                    importFile.bones.forEach(bone => {
-                        // Skip the root bone of the imported file
-                        if (!bone.parent && bone.name === "root") {
-                            return;
-                        }
-                        
-                        const newBone = {...bone};
-                        newBone.name = boneNameMap[bone.name];
-                        
-                        // Update the parent bone if it exists
-                        if (bone.parent) {
-                            // If the parent is the root bone of the imported file,
-                            // replace it with the root bone of the main file
-                            if (bone.parent === "root") {
-                                newBone.parent = mainRootBoneName;
+                    const importBones = importFile.bones
+                        .filter(bone => !(bone.name === "root" && !bone.parent))
+                        .map(bone => {
+                            const newBone = deepCopy(bone);
+                            newBone.name = boneNameMap[bone.name];
+                            if (bone.parent) {
+                                newBone.parent = bone.parent === "root" ? mainRootBoneName : boneNameMap[bone.parent];
                             } else {
-                                newBone.parent = boneNameMap[bone.parent];
+                                newBone.parent = mainRootBoneName;
                             }
-                        } else {
-                            // Bone has no parent but is not the "root" bone,
-                            // attach it to the root bone of the main file
-                            newBone.parent = mainRootBoneName;
-                        }
-                        
-                        importBones.push(newBone);
-                    });
+                            return newBone;
+                        });
                     
-                    // Add processed bones
                     if (!result.bones) result.bones = [];
-                    result.bones = result.bones.concat(importBones);
+                    result.bones.push(...importBones);
                 }
                 
-                // 2. Slots - add with updated bone references
+                // Slots
                 if (importFile.slots && Array.isArray(importFile.slots)) {
                     const importSlots = importFile.slots.map(slot => {
-                        const newSlot = {...slot};
-                        
-                        // Update slot name and bone reference
+                        const newSlot = deepCopy(slot);
                         newSlot.name = slot.name + importSuffix;
-                        if (slot.bone) {
-                            newSlot.bone = boneNameMap[slot.bone];
-                        }
-                        
+                        if (slot.bone) newSlot.bone = boneNameMap[slot.bone];
                         return newSlot;
                     });
                     
-                    // Add processed slots
                     if (!result.slots) result.slots = [];
-                    result.slots = result.slots.concat(importSlots);
+                    result.slots.push(...importSlots);
                 }
                 
-                // 3. Constraints (IK, transform, path) - add with updated bone references
+                // Constraints
                 const constraintTypes = ['ik', 'transform', 'path'];
-                
                 constraintTypes.forEach(constraintType => {
                     if (importFile[constraintType] && Array.isArray(importFile[constraintType])) {
                         const importConstraints = importFile[constraintType].map(constraint => {
-                            const newConstraint = {...constraint};
-                            
-                            // Update constraint name
+                            const newConstraint = deepCopy(constraint);
                             newConstraint.name = constraint.name + importSuffix;
-                            
-                            // Update bone references
-                            if (constraint.target) {
-                                newConstraint.target = boneNameMap[constraint.target];
-                            }
-                            
-                            if (constraint.bones && Array.isArray(constraint.bones)) {
-                                newConstraint.bones = constraint.bones.map(bone => boneNameMap[bone]);
-                            }
-                            
-                            // Handle parent (for path constraints)
-                            if (constraint.parent) {
-                                newConstraint.parent = boneNameMap[constraint.parent];
-                            }
-                            
+                            if (constraint.target) newConstraint.target = boneNameMap[constraint.target];
+                            if (constraint.bones) newConstraint.bones = constraint.bones.map(bone => boneNameMap[bone]);
+                            if (constraint.parent) newConstraint.parent = boneNameMap[constraint.parent];
                             return newConstraint;
                         });
                         
-                        // Add processed constraints
                         if (!result[constraintType]) result[constraintType] = [];
-                        result[constraintType] = result[constraintType].concat(importConstraints);
+                        result[constraintType].push(...importConstraints);
                     }
                 });
                 
-                // 4. Skin processing - add attachments to existing skin
-                if (importFile.skins && Array.isArray(importFile.skins) && importFile.skins.length > 0) {
-                    // For each skin from the imported file
+                // Skins
+                if (importFile.skins && Array.isArray(importFile.skins)) {
                     importFile.skins.forEach(importSkin => {
-                        // Find the corresponding skin in the result (usually "default")
-                        const targetSkin = result.skins.find(skin => skin.name === importSkin.name);
+                        let targetSkin = result.skins && result.skins.find(skin => skin.name === importSkin.name);
+                        if (!targetSkin) {
+                            targetSkin = { name: importSkin.name, attachments: {} };
+                            if (!result.skins) result.skins = [];
+                            result.skins.push(targetSkin);
+                        }
                         
-                        if (targetSkin && importSkin.attachments) {
-                            // For each slot in the imported skin
+                        if (importSkin.attachments) {
                             for (const slotName in importSkin.attachments) {
-                                // Create a new slot name with suffix
                                 const newSlotName = slotName + importSuffix;
-                                
-                                // Copy all attachments for this slot
-                                targetSkin.attachments[newSlotName] = JSON.parse(JSON.stringify(importSkin.attachments[slotName]));
+                                targetSkin.attachments[newSlotName] = targetSkin.attachments[newSlotName] || {};
+                                for (const attachmentName in importSkin.attachments[slotName]) {
+                                    targetSkin.attachments[newSlotName][attachmentName] = 
+                                        deepCopy(importSkin.attachments[slotName][attachmentName]);
+                                }
                             }
                         }
                     });
                 }
                 
-                // 5. Animation processing - correctly add to existing animations
+                // Animations
                 if (importFile.animations) {
                     if (!result.animations) result.animations = {};
                     
-                    // For each animation in the imported file
                     for (const animName in importFile.animations) {
                         const importAnim = importFile.animations[animName];
+                        const newAnimName = animName + importSuffix;
+                        const newAnim = deepCopy(importAnim);
                         
-                        // If this animation already exists in the main file
-                        if (result.animations[animName]) {
-                            const targetAnim = result.animations[animName];
-                            
-                            // Process slot animations
-                            if (importAnim.slots) {
-                                if (!targetAnim.slots) targetAnim.slots = {};
-                                
-                                for (const slotName in importAnim.slots) {
-                                    const newSlotName = slotName + importSuffix;
-                                    targetAnim.slots[newSlotName] = JSON.parse(JSON.stringify(importAnim.slots[slotName]));
-                                }
+                        if (newAnim.slots) {
+                            const updatedSlots = {};
+                            for (const slotName in newAnim.slots) {
+                                updatedSlots[slotName + importSuffix] = newAnim.slots[slotName];
                             }
-                            
-                            // Process bone animations
-                            if (importAnim.bones) {
-                                if (!targetAnim.bones) targetAnim.bones = {};
-                                
-                                for (const boneName in importAnim.bones) {
-                                    const newBoneName = boneNameMap[boneName];
-                                    if (newBoneName) {
-                                        targetAnim.bones[newBoneName] = JSON.parse(JSON.stringify(importAnim.bones[boneName]));
-                                    }
-                                }
-                            }
-                            
-                            // Process drawOrder, if present
-                            if (importAnim.drawOrder && Array.isArray(importAnim.drawOrder)) {
-                                if (!targetAnim.drawOrder) targetAnim.drawOrder = [];
-                                
-                                const newDrawOrders = importAnim.drawOrder.map(drawOrder => {
-                                    const newDrawOrder = {...drawOrder};
-                                    
-                                    if (drawOrder.offsets && Array.isArray(drawOrder.offsets)) {
-                                        newDrawOrder.offsets = drawOrder.offsets.map(offset => {
-                                            const newOffset = {...offset};
-                                            if (offset.slot) {
-                                                newOffset.slot = offset.slot + importSuffix;
-                                            }
-                                            return newOffset;
-                                        });
-                                    }
-                                    
-                                    return newDrawOrder;
-                                });
-                                
-                                targetAnim.drawOrder = targetAnim.drawOrder.concat(newDrawOrders);
-                            }
-                            
-                            // Process events, if present
-                            if (importAnim.events && Array.isArray(importAnim.events)) {
-                                if (!targetAnim.events) targetAnim.events = [];
-                                
-                                const newEvents = importAnim.events.map(event => {
-                                    const newEvent = {...event};
-                                    if (event.name) {
-                                        newEvent.name = event.name + importSuffix;
-                                    }
-                                    return newEvent;
-                                });
-                                
-                                targetAnim.events = targetAnim.events.concat(newEvents);
-                            }
-                        } else {
-                            // If the animation doesn't exist in the main file, add it with a new name
-                            const newAnimName = animName + importSuffix;
-                            const newAnim = {
-                                slots: {},
-                                bones: {},
-                                events: [],
-                                drawOrder: []
-                            };
-                            
-                            // Process slot animations
-                            if (importAnim.slots) {
-                                for (const slotName in importAnim.slots) {
-                                    const newSlotName = slotName + importSuffix;
-                                    newAnim.slots[newSlotName] = JSON.parse(JSON.stringify(importAnim.slots[slotName]));
-                                }
-                            }
-                            
-                            // Process bone animations
-                            if (importAnim.bones) {
-                                for (const boneName in importAnim.bones) {
-                                    const newBoneName = boneNameMap[boneName];
-                                    if (newBoneName) {
-                                        newAnim.bones[newBoneName] = JSON.parse(JSON.stringify(importAnim.bones[boneName]));
-                                    }
-                                }
-                            }
-                            
-                            // Process drawOrder, if present
-                            if (importAnim.drawOrder && Array.isArray(importAnim.drawOrder)) {
-                                newAnim.drawOrder = importAnim.drawOrder.map(drawOrder => {
-                                    const newDrawOrder = {...drawOrder};
-                                    
-                                    if (drawOrder.offsets && Array.isArray(drawOrder.offsets)) {
-                                        newDrawOrder.offsets = drawOrder.offsets.map(offset => {
-                                            const newOffset = {...offset};
-                                            if (offset.slot) {
-                                                newOffset.slot = offset.slot + importSuffix;
-                                            }
-                                            return newOffset;
-                                        });
-                                    }
-                                    
-                                    return newDrawOrder;
-                                });
-                            }
-                            
-                            // Process events, if present
-                            if (importAnim.events && Array.isArray(importAnim.events)) {
-                                newAnim.events = importAnim.events.map(event => {
-                                    const newEvent = {...event};
-                                    if (event.name) {
-                                        newEvent.name = event.name + importSuffix;
-                                    }
-                                    return newEvent;
-                                });
-                            }
-                            
-                            // Add the new animation to the result
-                            result.animations[newAnimName] = newAnim;
+                            newAnim.slots = updatedSlots;
                         }
+                        
+                        if (newAnim.bones) {
+                            const updatedBones = {};
+                            for (const boneName in newAnim.bones) {
+                                const newBoneName = boneNameMap[boneName];
+                                if (newBoneName) updatedBones[newBoneName] = newAnim.bones[boneName];
+                            }
+                            newAnim.bones = updatedBones;
+                        }
+                        
+                        if (newAnim.drawOrder && Array.isArray(newAnim.drawOrder)) {
+                            newAnim.drawOrder = newAnim.drawOrder.map(drawOrder => {
+                                const newDrawOrder = deepCopy(drawOrder);
+                                if (drawOrder.offsets && Array.isArray(drawOrder.offsets)) {
+                                    newDrawOrder.offsets = drawOrder.offsets.map(offset => {
+                                        const newOffset = deepCopy(offset);
+                                        if (offset.slot) newOffset.slot = offset.slot + importSuffix;
+                                        return newOffset;
+                                    });
+                                }
+                                return newDrawOrder;
+                            });
+                        }
+                        
+                        if (newAnim.events && Array.isArray(newAnim.events)) {
+                            newAnim.events = newAnim.events.map(event => {
+                                const newEvent = deepCopy(event);
+                                if (event.name) newEvent.name = event.name + importSuffix;
+                                return newEvent;
+                            });
+                        }
+                        
+                        result.animations[newAnimName] = newAnim;
                     }
                 }
                 
-                // 6. Update version for smooth transition if needed
+                // Update version
                 if (importFile.skeleton && importFile.skeleton.spine && !result.skeleton.spine) {
                     result.skeleton.spine = importFile.skeleton.spine;
                 }
                 
+                console.log('Files merged');
                 return result;
             }
         });
