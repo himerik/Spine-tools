@@ -38,6 +38,17 @@ async function readFileAsText(file) {
 class DummyAttachmentLoader {
     constructor() {
         // Constructor needed for Spine 4.1
+        this.availableAttachments = new Set(); // Хранение доступных аттачментов
+    }
+
+    // Добавить аттачмент в список доступных
+    addAvailableAttachment(slotName, attachmentName) {
+        this.availableAttachments.add(`${slotName}:${attachmentName}`);
+    }
+
+    // Проверить, доступен ли аттачмент
+    isAttachmentAvailable(slotName, attachmentName) {
+        return this.availableAttachments.has(`${slotName}:${attachmentName}`);
     }
 
     newRegionAttachment(skin, name, path) {
@@ -244,6 +255,30 @@ function saveJsonFile() {
     updateStatus('Файл успешно сохранен!', 'success');
 }
 
+// Функция для сбора всех существующих аттачментов для всех слотов
+function collectAllAttachments() {
+    const attachmentMap = new Map();
+    
+    // Собираем аттачменты из всех скинов
+    if (appState.originalJson.skins) {
+        for (const skin of appState.originalJson.skins) {
+            for (const slotName in skin.attachments) {
+                if (!attachmentMap.has(slotName)) {
+                    attachmentMap.set(slotName, new Set());
+                }
+                
+                const slotAttachments = attachmentMap.get(slotName);
+                
+                for (const attachmentName in skin.attachments[slotName]) {
+                    slotAttachments.add(attachmentName);
+                }
+            }
+        }
+    }
+    
+    return attachmentMap;
+}
+
 // Функция для извлечения вершин из анимации
 async function extractVertices(animationName) {
     try {
@@ -267,12 +302,30 @@ async function extractVertices(animationName) {
         
         // Создаем наш собственный загрузчик вложений
         const attachmentLoader = new DummyAttachmentLoader();
+        
+        // Собираем все существующие аттачменты
+        const allAttachments = collectAllAttachments();
+        
+        // Добавляем все аттачменты в загрузчик для проверки
+        for (const [slotName, attachments] of allAttachments.entries()) {
+            for (const attachmentName of attachments) {
+                attachmentLoader.addAvailableAttachment(slotName, attachmentName);
+            }
+        }
+        
         const skeletonJson = new spine.SkeletonJson(attachmentLoader);
         skeletonJson.scale = 1.0;
         
         try {
-            skeletonData = skeletonJson.readSkeletonData(appState.originalJson);
+            // Клонируем JSON, чтобы не модифицировать оригинал
+            const jsonClone = JSON.parse(JSON.stringify(appState.originalJson));
+            
+            // Проверяем и фиксим анимации аттачментов, которые могут быть недоступны
+            fixAttachmentTimelines(jsonClone, attachmentLoader);
+            
+            skeletonData = skeletonJson.readSkeletonData(jsonClone);
         } catch (e) {
+            console.error("Ошибка при чтении данных скелета:", e);
             throw new Error(`Ошибка при чтении данных скелета: ${e.message}`);
         }
         
@@ -402,9 +455,52 @@ async function extractVertices(animationName) {
     }
 }
 
-// Получение списка слотов с мешами
+// Проверка и исправление анимаций аттачментов
+function fixAttachmentTimelines(jsonData, attachmentLoader) {
+    if (!jsonData.animations) return;
+    
+    for (const animationName in jsonData.animations) {
+        const animation = jsonData.animations[animationName];
+        
+        // Исправляем анимации аттачментов в слотах
+        if (animation.slots) {
+            for (const slotName in animation.slots) {
+                const slot = animation.slots[slotName];
+                
+                // Проверяем и исправляем таймлайны аттачментов
+                if (slot.attachment) {
+                    const invalidFrames = [];
+                    
+                    for (let i = 0; i < slot.attachment.length; i++) {
+                        const frame = slot.attachment[i];
+                        
+                        // Проверяем, существует ли указанный аттачмент
+                        if (frame.name && !attachmentLoader.isAttachmentAvailable(slotName, frame.name)) {
+                            console.warn(`Найден невалидный аттачмент в анимации ${animationName}, слот ${slotName}: ${frame.name}`);
+                            invalidFrames.push(i);
+                        }
+                    }
+                    
+                    // Удаляем невалидные фреймы (с конца к началу, чтобы индексы не сбились)
+                    for (let i = invalidFrames.length - 1; i >= 0; i--) {
+                        const frameIndex = invalidFrames[i];
+                        slot.attachment.splice(frameIndex, 1);
+                    }
+                    
+                    // Если все фреймы удалены, удаляем весь таймлайн
+                    if (slot.attachment.length === 0) {
+                        delete slot.attachment;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Получение списка всех слотов с мешами, включая выключенные
 function getMeshSlots() {
     const meshSlots = new Map();
+    const slotVisibilityState = new Map();
     
     // Собираем информацию о мешах
     if (appState.originalJson.skins) {
@@ -420,7 +516,26 @@ function getMeshSlots() {
         }
     }
     
-    return meshSlots;
+    // Собираем информацию о видимости слотов
+    if (appState.originalJson.slots) {
+        for (const slot of appState.originalJson.slots) {
+            // Проверяем, есть ли у слота свойство visible
+            if (slot.name && meshSlots.has(slot.name)) {
+                // Если visible явно установлен как false, запоминаем это
+                if (slot.hasOwnProperty('visible') && slot.visible === false) {
+                    slotVisibilityState.set(slot.name, false);
+                } else {
+                    // По умолчанию все слоты видимы
+                    slotVisibilityState.set(slot.name, true);
+                }
+            }
+        }
+    }
+    
+    return {
+        meshSlots,
+        slotVisibilityState
+    };
 }
 
 // Инициализация базовой структуры запеченного JSON
@@ -442,7 +557,7 @@ function initializeBakedJson(extractedVertices) {
     };
     
     // Собираем информацию о мешах и слотах
-    const meshSlots = getMeshSlots();
+    const { meshSlots, slotVisibilityState } = getMeshSlots();
     const meshAttachments = new Map();
     const slotDataMap = new Map();
     
@@ -471,13 +586,13 @@ function initializeBakedJson(extractedVertices) {
     // Добавляем слоты в том же порядке, что и в оригинальном файле
     if (appState.originalJson.slots) {
         // Создаем список слотов с мешами
-        const meshSlotSet = new Set(meshSlots.keys());
+        const meshSlotKeys = Array.from(meshSlots.keys());
         
         // Добавляем слоты в том же порядке, что и в исходном файле
         for (const originalSlot of appState.originalJson.slots) {
             const slotName = originalSlot.name;
             // Добавляем только слоты с мешами
-            if (meshSlotSet.has(slotName)) {
+            if (meshSlotKeys.includes(slotName)) {
                 const attachmentName = meshSlots.get(slotName);
                 const newSlot = {
                     name: slotName,
@@ -488,6 +603,11 @@ function initializeBakedJson(extractedVertices) {
                 // Копируем другие важные свойства слота
                 if (originalSlot.color) newSlot.color = originalSlot.color;
                 if (originalSlot.blend) newSlot.blend = originalSlot.blend;
+                
+                // Добавляем свойство visible для отключенных слотов
+                if (slotVisibilityState.has(slotName) && slotVisibilityState.get(slotName) === false) {
+                    newSlot.visible = false;
+                }
                 
                 appState.bakedJson.slots.push(newSlot);
             }
@@ -527,6 +647,78 @@ function initializeBakedJson(extractedVertices) {
             appState.bakedJson.skins[0].attachments[slotName][attachmentName] = cleanMesh;
         }
     }
+    
+    // Добавляем все аттачменты, которые используются в анимациях, но не имеют мешей
+    ensureAllAttachmentsExist();
+}
+
+// Обеспечиваем наличие всех аттачментов, используемых в анимациях
+function ensureAllAttachmentsExist() {
+    if (!appState.originalJson.animations || !appState.bakedJson) return;
+    
+    // Получаем список всех аттачментов из анимаций
+    const animationAttachments = new Map();
+    
+    for (const animationName in appState.originalJson.animations) {
+        const animation = appState.originalJson.animations[animationName];
+        
+        if (animation.slots) {
+            for (const slotName in animation.slots) {
+                const slot = animation.slots[slotName];
+                
+                if (slot.attachment) {
+                    if (!animationAttachments.has(slotName)) {
+                        animationAttachments.set(slotName, new Set());
+                    }
+                    
+                    for (const frame of slot.attachment) {
+                        if (frame.name) {
+                            animationAttachments.get(slotName).add(frame.name);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Убеждаемся, что все эти аттачменты существуют в скине
+    for (const [slotName, attachments] of animationAttachments.entries()) {
+        for (const attachmentName of attachments) {
+            // Создаем слот в скине, если его нет
+            if (!appState.bakedJson.skins[0].attachments[slotName]) {
+                appState.bakedJson.skins[0].attachments[slotName] = {};
+            }
+            
+            // Проверяем, существует ли такой аттачмент в скине
+            if (!appState.bakedJson.skins[0].attachments[slotName][attachmentName]) {
+                // Ищем этот аттачмент в оригинальном JSON
+                const foundAttachment = findAttachmentInOriginalJson(slotName, attachmentName);
+                
+                if (foundAttachment) {
+                    // Копируем существующий аттачмент
+                    appState.bakedJson.skins[0].attachments[slotName][attachmentName] = 
+                        JSON.parse(JSON.stringify(foundAttachment));
+                } else {
+                    // Создаем пустой аттачмент
+                    console.log(`Добавление пустого аттачмента для анимации: ${slotName}/${attachmentName}`);
+                    appState.bakedJson.skins[0].attachments[slotName][attachmentName] = {};
+                }
+            }
+        }
+    }
+}
+
+// Функция поиска аттачмента в оригинальном JSON
+function findAttachmentInOriginalJson(slotName, attachmentName) {
+    if (!appState.originalJson.skins) return null;
+    
+    for (const skin of appState.originalJson.skins) {
+        if (skin.attachments && skin.attachments[slotName] && skin.attachments[slotName][attachmentName]) {
+            return skin.attachments[slotName][attachmentName];
+        }
+    }
+    
+    return null;
 }
 
 // Функция для запекания одной анимации
@@ -552,20 +744,43 @@ async function bakeAnimation(animationName) {
                 }
             };
             
-            // Копируем анимацию слотов (без изменений)
+            // Копируем анимацию слотов (с проверкой на неподдерживаемые аттачменты)
             if (appState.originalJson.animations[animationName].slots) {
-                // Фильтруем, оставляя только слоты с мешами
-                const filteredSlots = {};
-                const origSlots = appState.originalJson.animations[animationName].slots;
-                const meshSlots = getMeshSlots();
+                // Создаем глубокую копию
+                const originalSlots = JSON.parse(JSON.stringify(appState.originalJson.animations[animationName].slots));
                 
-                for (const slotName in origSlots) {
-                    if (meshSlots.has(slotName)) {
-                        filteredSlots[slotName] = JSON.parse(JSON.stringify(origSlots[slotName]));
+                // Проверяем каждый слот и его таймлайны
+                for (const slotName in originalSlots) {
+                    // Проверяем таймлайны аттачментов
+                    if (originalSlots[slotName].attachment) {
+                        const validFrames = [];
+                        
+                        for (const frame of originalSlots[slotName].attachment) {
+                            // Проверяем, что аттачмент существует в нашем запеченном JSON
+                            if (!frame.name || 
+                                (appState.bakedJson.skins[0].attachments[slotName] && 
+                                 appState.bakedJson.skins[0].attachments[slotName][frame.name])) {
+                                validFrames.push(frame);
+                            } else {
+                                console.warn(`Пропуск аттачмента ${frame.name} в слоте ${slotName} - не найден в запеченном JSON`);
+                            }
+                        }
+                        
+                        // Обновляем таймлайн, если есть валидные фреймы
+                        if (validFrames.length > 0) {
+                            originalSlots[slotName].attachment = validFrames;
+                        } else {
+                            // Удаляем пустой таймлайн
+                            delete originalSlots[slotName].attachment;
+                        }
+                    }
+                    
+                    // Если после проверки в слоте остались какие-то таймлайны,
+                    // добавляем его в запеченную анимацию
+                    if (Object.keys(originalSlots[slotName]).length > 0) {
+                        appState.bakedJson.animations[animationName].slots[slotName] = originalSlots[slotName];
                     }
                 }
-                
-                appState.bakedJson.animations[animationName].slots = filteredSlots;
             }
             
             // Копируем анимацию drawOrder
@@ -590,35 +805,13 @@ function copyDrawOrder(animationName) {
         appState.bakedJson.animations[animationName].drawOrder = JSON.parse(
             JSON.stringify(appState.originalJson.animations[animationName].drawOrder)
         );
-        
-        // Фильтруем drawOrder, оставляя только слоты с мешами
-        const meshSlots = getMeshSlots();
-        for (let i = 0; i < appState.bakedJson.animations[animationName].drawOrder.length; i++) {
-            const drawOrderFrame = appState.bakedJson.animations[animationName].drawOrder[i];
-            if (drawOrderFrame.offsets) {
-                drawOrderFrame.offsets = drawOrderFrame.offsets.filter(offset => 
-                    meshSlots.has(offset.slot)
-                );
-                
-                // Если после фильтрации у нас нет смещений, убираем этот кадр
-                if (drawOrderFrame.offsets.length === 0) {
-                    appState.bakedJson.animations[animationName].drawOrder.splice(i, 1);
-                    i--; // Уменьшаем i, так как мы удалили элемент
-                }
-            }
-        }
-        
-        // Если после всех фильтраций у нас нет ни одного кадра, удаляем drawOrder
-        if (appState.bakedJson.animations[animationName].drawOrder.length === 0) {
-            delete appState.bakedJson.animations[animationName].drawOrder;
-        }
     }
 }
 
 // Запекание деформаций на основе извлеченных вершин
 async function bakeDeformations(animationName, extractedVertices) {
     // Собираем информацию о мешах
-    const meshSlots = getMeshSlots();
+    const { meshSlots } = getMeshSlots();
     const meshAttachments = new Map();
     
     if (appState.originalJson.skins) {
@@ -643,6 +836,9 @@ async function bakeDeformations(animationName, extractedVertices) {
         if (!appState.bakedJson.animations[animationName].attachments.default[slotName]) {
             appState.bakedJson.animations[animationName].attachments.default[slotName] = {};
         }
+        
+        // Пропускаем, если нет данных для этого меша
+        if (!extractedVertices[0]?.meshes[meshKey]) continue;
         
         appState.bakedJson.animations[animationName].attachments.default[slotName][attachmentName] = {
             deform: []
