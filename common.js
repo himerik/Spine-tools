@@ -30,8 +30,8 @@ function addKofiWidget() {
       kofiWidgetOverlay.draw('kirillme', {
         'type': 'floating-chat',
         'floating-chat.donateButton.text': 'Support me',
-        'floating-chat.donateButton.background-color': '#ff38b8',
-        'floating-chat.donateButton.text-color': '#fff'
+        'floating-chat.donateButton.background-color': '#ffffff',
+        'floating-chat.donateButton.text-color': '#323842'
       });
     `;
     document.body.appendChild(widgetScript);
