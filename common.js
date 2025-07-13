@@ -16,3 +16,12 @@ window.addEventListener('DOMContentLoaded', () => {
   `;
   document.body.appendChild(link);
 });
+<script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+<script>
+  kofiWidgetOverlay.draw('kirillme', {
+    'type': 'floating-chat',
+    'floating-chat.donateButton.text': 'Support me',
+    'floating-chat.donateButton.background-color': '#ff38b8',
+    'floating-chat.donateButton.text-color': '#fff'
+  });
+</script>
